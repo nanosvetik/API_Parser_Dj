@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Контакты{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container px-5">
+        <!-- Заголовок страницы -->
+        <div class="text-center mb-5">
+            <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i class="bi bi-envelope"></i></div>
+            <h1 class="fw-bolder">Свяжитесь с нами</h1>
+            <p class="lead fw-normal text-muted mb-0">Мы будем рады ответить на все ваши вопросы</p>
+        </div>
+
+        <!-- Карты контактов -->
+        <div class="row gx-5 row-cols-2 row-cols-lg-4 py-5">
+            <!-- Напишите нам -->
+            <div class="col">
+                <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i class="bi bi-chat-dots"></i></div>
+                <div class="h5 mb-2">Напишите нам</div>
+                <p class="text-muted mb-0">Чат в Telegram: <a href="#" target="_blank">Ссылка на Telegram</a></p>
+            </div>
+
+            <!-- Спросите сообщество -->
+            <div class="col">
+                <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i class="bi bi-people"></i></div>
+                <div class="h5">Спросите сообщество</div>
+                <p class="text-muted mb-0">Исследуйте форумы нашего сообщества: <a href="#" target="_blank">Ссылка на форум</a></p>
+            </div>
+
+            <!-- Центр поддержки -->
+            <div class="col">
+                <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i class="bi bi-question-circle"></i></div>
+                <div class="h5">Центр поддержки</div>
+                <p class="text-muted mb-0">Просмотрите часто задаваемые вопросы: <a href="#" target="_blank">Ссылка на FAQ</a></p>
+            </div>
+
+            <!-- Позвоните нам -->
+            <div class="col">
+                <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3"><i class="bi bi-telephone"></i></div>
+                <div class="h5">Позвоните нам</div>
+                <p class="text-muted mb-0">Позвоните нам по телефону: <a href="tel:+1234567890">+123 456 7890</a></p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
