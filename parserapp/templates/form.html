@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Форма поиска вакансий{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container px-5">
+        <h1 class="text-center mb-4">Поиск вакансий</h1>
+        <form method="POST" action="{% url 'form' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+                {{ form.title.label_tag }}
+                {{ form.title }}
+            </div>
+            <div class="mb-3">
+                {{ form.location.label_tag }}
+                {{ form.location }}
+            </div>
+            <div class="mb-3">
+                {{ form.experience.label_tag }}
+                {{ form.experience }}
+            </div>
+            <div class="mb-3">
+                {{ form.schedule.label_tag }}
+                {{ form.schedule }}
+            </div>
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary">Найти вакансии</button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<header class="bg-dark py-5">
+    <div class="container px-5">
+        <div class="row gx-5 align-items-center justify-content-center">
+            <div class="col-lg-8 col-xl-7 col-xxl-6">
+                <div class="my-5 text-center text-xl-start">
+                    <h1 class="display-5 fw-bolder text-white mb-2">Добро пожаловать на Parser HH — инструмент для анализа вакансий и рынка труда</h1>
+                    <p class="lead fw-normal text-white-50 mb-4">Найди свою работу мечты с Parser HH, быстро и удобно!</p>
+                    <div class="d-grid gap-3 d-sm-flex justify-content-sm-center justify-content-xl-start">
+                        <a class="btn btn-primary btn-lg px-4 me-sm-3" href="{% url 'form' %}">НАЧАТЬ</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-5 col-xxl-6 d-none d-xl-block text-center">
+                <img class="img-fluid rounded-3 my-5" src="{% static 'images/start.ipg.jpg' %}" alt="Welcome Image" />
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Features Section -->
+<section class="py-5" id="features">
+    <div class="container px-5 my-5">
+        <div class="row gx-5">
+            <div class="col-lg-4 mb-5 mb-lg-0">
+                <h2 class="fw-bolder mb-0">Почему искать работу с Parser HH это так просто и удобно</h2>
+            </div>
+            <div class="col-lg-8">
+                <div class="row gx-5 row-cols-1 row-cols-md-2">
+                    <div class="col mb-5 h-100">
+                        <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3">
+                            <i class="bi bi-collection"></i>
+                        </div>
+                        <h2 class="h5">Быстрый результат</h2>
+                        <p class="mb-0">Получение списка вакансий одним нажатием кнопки.</p>
+                    </div>
+                    <div class="col mb-5 h-100">
+                        <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <h2 class="h5">Список навыков</h2>
+                        <p class="mb-0">Узнай, какие навыки самые востребованные.</p>
+                    </div>
+                    <div class="col mb-5 mb-md-0 h-100">
+                        <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3">
+                            <i class="bi bi-toggles2"></i>
+                        </div>
+                        <h2 class="h5">Удобный поиск</h2>
+                        <p class="mb-0">Просто выбери необходимые параметры поиска.</p>
+                    </div>
+                    <div class="col h-100">
+                        <div class="feature bg-primary bg-gradient text-white rounded-3 mb-3">
+                            <i class="bi bi-toggles2"></i>
+                        </div>
+                        <h2 class="h5">Настройки</h2>
+                        <p class="mb-0">Простые настройки для точных результатов.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Blog Preview Section -->
+<section class="py-5">
+    <div class="container px-5 my-5">
+        <div class="row gx-5 justify-content-center">
+            <div class="col-lg-8 col-xl-6">
+                <div class="text-center">
+                    <h2 class="fw-bolder">Полезные ресурсы</h2>
+                    <p class="lead fw-normal text-muted mb-5">Актуальные новости. Готовые решения для поиска работы.</p>
+                </div>
+            </div>
+        </div>
+        <div class="row gx-5">
+            <div class="col-lg-4 mb-5">
+                <div class="card h-100 shadow border-0">
+                    <img class="card-img-top" src="{% static 'images/it9.jpg' %}" alt="Новости рынка труда" />
+                    <div class="card-body p-4">
+                        <div class="badge bg-primary bg-gradient rounded-pill mb-2">News</div>
+                        <a class="text-decoration-none link-dark stretched-link" href="https://hh.ru/article/news-355">
+                            <h5 class="card-title mb-3">Новости рынка труда</h5>
+                        </a>
+                        <p class="card-text mb-0">Представляем вашему вниманию очередной недельный отчет Службы исследований HeadHunter о состоянии рынка труда.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-5">
+                <div class="card h-100 shadow border-0">
+                    <img class="card-img-top" src="{% static 'images/it10.jpg' %}" alt="Профориентация" />
+                    <div class="card-body p-4">
+                        <div class="badge bg-primary bg-gradient rounded-pill mb-2">Test</div>
+                        <a class="text-decoration-none link-dark stretched-link" href="https://hh.ru/article/proforientation_promo?hhtmFrom=services&hhtmFromLabel=menu">
+                            <h5 class="card-title mb-3">Профориентация</h5>
+                        </a>
+                        <p class="card-text mb-0">Сервис проанализирует ваши интересы, склад мышления и личностные особенности. И покажет рекомендованные профессии.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-5">
+                <div class="card h-100 shadow border-0">
+                    <img class="card-img-top" src="{% static 'images/it3.jpg' %}" alt="Подтверждение навыков" />
+                    <div class="card-body p-4">
+                        <div class="badge bg-primary bg-gradient rounded-pill mb-2">Test</div>
+                        <a class="text-decoration-none link-dark stretched-link" href="https://hh.ru/applicant/skill_verifications/methods?fromService=true">
+                            <h5 class="card-title mb-3">Подтверждение навыков</h5>
+                        </a>
+                        <p class="card-text mb-0">Сдайте теорию с практикой и станьте ценнее.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
