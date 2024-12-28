@@ -8,7 +8,7 @@ class Skill(models.Model):
 
 class Vacancy(models.Model):
     title = models.CharField(max_length=255)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)  # Разрешить NULL и пустые значения
     url = models.URLField()
     location = models.CharField(max_length=255)
     experience = models.CharField(max_length=255)

@@ -19,10 +19,14 @@
             <tbody>
                 {% for vacancy in vacancies %}
                 <tr>
-                    <th scope="row">{{ forloop.counter }}</th> <!-- Индекс вакансии -->
-                    <td>{{ vacancy.title }}</td> <!-- Название вакансии -->
-                    <td>{{ vacancy.description }}</td> <!-- Описание вакансии -->
-                    <td><a href="{{ vacancy.url }}" target="_blank">Перейти</a></td> <!-- Ссылка на вакансию -->
+                    <th scope="row">{{ forloop.counter }}</th>
+                    <td>{{ vacancy.title }}</td>
+                    <td>{{ vacancy.description }}</td>
+                    <td><a href="{{ vacancy.url }}" target="_blank">Перейти</a></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">Нет вакансий, соответствующих вашему запросу.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -31,19 +35,21 @@
 
     <!-- Навыки -->
     <div class="mb-5">
-        <h3 class="fw-bold">Навыки</h3>
+        <h3 class="fw-bold">Топ-10 навыков</h3>
         <table class="table table-striped table-hover">
             <thead class="thead-dark">
                 <tr>
                     <th scope="col">#</th>
                     <th scope="col">Навык</th>
+                    <th scope="col">Количество вакансий</th>
                 </tr>
             </thead>
             <tbody>
                 {% for skill in skills %}
                 <tr>
-                    <th scope="row">{{ forloop.counter }}</th> <!-- Индекс навыка -->
-                    <td>{{ skill.name }}</td> <!-- Название навыка -->
+                    <th scope="row">{{ forloop.counter }}</th>
+                    <td>{{ skill.name }}</td>
+                    <td>{{ skill.vacancy_count }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

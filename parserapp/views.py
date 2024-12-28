@@ -20,7 +20,15 @@ class VacancySearchView(FormView):
         experience = form.cleaned_data['experience']
         schedule = form.cleaned_data['schedule']
 
-        # Запуск парсера с параметрами из формы
+        # Сохраняем параметры поиска в сессии
+        self.request.session['search_params'] = {
+            'title': job_title,
+            'location': location,
+            'experience': experience,
+            'schedule': schedule,
+        }
+
+        # Запускаем парсер с указанными параметрами
         fill_database_command = FillDatabaseCommand()
         fill_database_command.handle(
             search_text=job_title,
@@ -31,16 +39,23 @@ class VacancySearchView(FormView):
 
         return super().form_valid(form)
 
+
 # Страница с результатами поиска
 class ResultsView(ListView):
     template_name = 'results.html'
-    model = Vacancy
     context_object_name = 'vacancies'
+
+    def get_queryset(self):
+        # Возвращаем все вакансии
+        return Vacancy.objects.all()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Добавляем навыки в контекст
-        context['skills'] = Skill.objects.all()
+
+        # Получаем топ-10 навыков по количеству связанных вакансий
+        top_skills = Skill.objects.annotate(vacancy_count=Count('vacancies')).order_by('-vacancy_count')[:10]
+        context['skills'] = top_skills
+
         return context
 
 # Страница контактов
