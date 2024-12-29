@@ -3,6 +3,7 @@ from django.db.models import Count
 from .forms import VacancySearchForm
 from .management.commands.fill_database import Command as FillDatabaseCommand
 from .models import Vacancy, Skill
+from .services import get_area_id
 
 # Главная страница
 class IndexView(TemplateView):
@@ -16,14 +17,26 @@ class VacancySearchView(FormView):
 
     def form_valid(self, form):
         job_title = form.cleaned_data['title']
-        location = form.cleaned_data['location']
+        location_name = form.cleaned_data['location']  # Название региона
         experience = form.cleaned_data['experience']
         schedule = form.cleaned_data['schedule']
+
+        if not job_title:
+            self.stdout.write(self.style.ERROR('Профессия не указана.'))
+            return super().form_valid(form)
+
+        # Преобразуем название региона в ID
+        location_id = None
+        if location_name:
+            location_id = get_area_id(location_name)
+            if not location_id:
+                self.stdout.write(self.style.ERROR(f'Регион "{location_name}" не найден.'))
+                return super().form_valid(form)
 
         # Сохраняем параметры поиска в сессии
         self.request.session['search_params'] = {
             'title': job_title,
-            'location': location,
+            'location': location_name,
             'experience': experience,
             'schedule': schedule,
         }
@@ -31,10 +44,10 @@ class VacancySearchView(FormView):
         # Запускаем парсер с указанными параметрами
         fill_database_command = FillDatabaseCommand()
         fill_database_command.handle(
-            search_text=job_title,
+            profession=job_title,
             experience=experience,
             schedule=schedule,
-            location=location
+            location=location_id if location_id else 1  # Передаем 1 (Москва), если регион не указан
         )
 
         return super().form_valid(form)
@@ -69,6 +82,6 @@ class StatisticsView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Получаем количество вакансий для каждого навыка
-        skills_with_count = Skill.objects.annotate(vacancy_count=Count('vacancies'))
+        skills_with_count = Skill.objects.annotate(vacancy_count=Count('vacancy'))
         context['skills_with_count'] = skills_with_count
         return context

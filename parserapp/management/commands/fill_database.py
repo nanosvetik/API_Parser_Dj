@@ -1,5 +1,6 @@
 import requests
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
+from django.db import models
 from parserapp.models import Skill, Vacancy
 
 DOMAIN = 'https://api.hh.ru/'
@@ -8,16 +9,26 @@ URL_VACANCIES = f'{DOMAIN}vacancies'
 class Command(BaseCommand):
     help = 'Заполняет базу данных вакансиями и навыками из API hh.ru'
 
+    def add_arguments(self, parser):
+        parser.add_argument('profession', type=str, help='Профессия для поиска вакансий')
+        parser.add_argument('--experience', type=str, default='noExperience', help='Опыт работы')
+        parser.add_argument('--schedule', type=str, default='remote', help='График работы')
+        parser.add_argument('--location', type=int, default=1, help='ID региона')
+
     def handle(self, *args, **kwargs):
-        search_text = 'QA OR "Инженер по тестированию" OR Тестировщик'
-        experience = 'noExperience'
-        schedule = 'remote'
-        location = 1  # ID региона (1 — Москва)
+        profession = kwargs.get('profession')  # Получаем профессию из аргументов
+        experience = kwargs.get('experience', 'noExperience')  # Опыт работы (по умолчанию 'noExperience')
+        schedule = kwargs.get('schedule', 'remote')  # График работы (по умолчанию 'remote')
+        location = kwargs.get('location', 1)  # ID региона (по умолчанию 1 — Москва)
+
+        if not profession:
+            self.stdout.write(self.style.ERROR('Профессия не указана.'))
+            return
 
         # Очищаем базу данных перед новым поиском
         self.clear_database()
 
-        vacancies = self.fetch_vacancies(search_text, experience, schedule, location)
+        vacancies = self.fetch_vacancies(profession, experience, schedule, location)
         self.save_to_database(vacancies)
         self.stdout.write(self.style.SUCCESS('Данные успешно сохранены в базу данных!'))
 
@@ -33,16 +44,19 @@ class Command(BaseCommand):
             'text': search_text,
             'experience': experience,
             'schedule': schedule,
-            'area': location,  # Передаём ID региона
             'page': 0,
             'per_page': 50
         }
+
+        # Добавляем регион в параметры, только если он указан
+        if location:
+            params['area'] = location
 
         while len(vacancies) < 20:
             response = requests.get(URL_VACANCIES, params=params)
             if response.status_code != 200:
                 self.stdout.write(self.style.ERROR(f"Ошибка при запросе: {response.status_code}"))
-                self.stdout.write(self.style.ERROR(f"Ответ API: {response.text}"))  # Вывод ответа API
+                self.stdout.write(self.style.ERROR(f"Ответ API: {response.text}"))
                 break
 
             data = response.json()
