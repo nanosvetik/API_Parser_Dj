@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Блог{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<header class="bg-dark py-5">
+    <div class="container px-5">
+        <div class="row gx-5 align-items-center justify-content-center">
+            <div class="col-lg-8 col-xl-7 col-xxl-6">
+                <div class="my-5 text-center text-xl-start">
+                    <h1 class="display-5 fw-bolder text-white mb-2">Привет! Меня зовут Светлана, и я автор этого проекта.</h1>
+                    <p class="lead fw-normal text-white-50 mb-4">
+                        Этот проект создан, чтобы помочь соискателям не сдаваться в поиске работы.
+                        Здесь вы можете делиться своими историями, вдохновлять других и помогать избежать ошибок,
+                        связанных с недобросовестными работодателями. Давайте поддерживать друг друга!
+                    </p>
+                    <div class="d-grid gap-3 d-sm-flex justify-content-sm-center justify-content-xl-start">
+                        {% if user.is_authenticated %}
+                            <a class="btn btn-primary btn-lg px-4 me-sm-3" href="{% url 'create_post' %}">НАЧАТЬ</a>
+                        {% else %}
+                            <a class="btn btn-primary btn-lg px-4 me-sm-3" href="{% url 'login' %}">ВОЙТИ, ЧТОБЫ НАЧАТЬ</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-5 col-xxl-6 d-none d-xl-block text-center">
+                <img class="img-fluid rounded-3 my-5" src="{% static 'images/my_photo.jpg' %}" alt="Фото Светланы" />
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Список постов -->
+<section class="py-5">
+    <div class="container px-5">
+        <h2 class="mb-4">Истории пользователей</h2>
+        {% if user.is_authenticated %}
+            <div class="accordion" id="postsAccordion">
+                {% for post in posts %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading{{ post.pk }}">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#collapse{{ post.pk }}" aria-expanded="true"
+                                    aria-controls="collapse{{ post.pk }}">
+                                {{ post.title }}
+                            </button>
+                        </h2>
+                        <div id="collapse{{ post.pk }}" class="accordion-collapse collapse"
+                             aria-labelledby="heading{{ post.pk }}" data-bs-parent="#postsAccordion">
+                            <div class="accordion-body">
+                                <p>{{ post.content }}</p>
+                                <p class="text-muted">Автор: {{ post.author.username }}</p>
+                                <p class="text-muted">Дата создания: {{ post.created_at }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p>Пока нет опубликованных историй. Будьте первым!</p>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                Чтобы читать истории, <a href="{% url 'login' %}" class="alert-link">войдите</a> или
+                <a href="{% url 'register' %}" class="alert-link">зарегистрируйтесь</a>.
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

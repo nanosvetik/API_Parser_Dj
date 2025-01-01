@@ -34,8 +34,28 @@
                     <li class="nav-item"><a class="nav-link" href="{% url 'index' %}">Главная</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'form' %}">Форма поиска</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'results' %}">Результаты</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{% url 'statistics' %}">Статистика</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'inspiration' %}">Блог</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'contact' %}">Контакты</a></li>
+                     {% if user.is_authenticated %}
+                    {% if user.userprofile.role == 'admin' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin:index' %}">Админка</a>
+                        </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <span class="nav-link">Привет, {{ user.username }}!</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'logout' %}">Выйти</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">Войти</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'register' %}">Зарегистрироваться</a>
+                    </li>
+                {% endif %}
                 </ul>
             </div>
         </div>

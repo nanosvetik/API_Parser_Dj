@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{{ post.title }}</h1>
+<p>{{ post.content }}</p>
+<p>Автор: {{ post.author.username }}</p>
+<p>Дата создания: {{ post.created_at }}</p>
+<p>Статус: {{ post.get_status_display }}</p>
+{% endblock %}
