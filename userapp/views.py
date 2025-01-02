@@ -9,9 +9,7 @@ def register(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            # Создаем профиль пользователя с ролью "reader"
-            from .models import UserProfile
-            UserProfile.objects.create(user=user, role='reader')
+            # Профиль создается автоматически через сигнал
             return redirect('login')
     else:
         form = RegisterForm()

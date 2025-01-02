@@ -52,23 +52,21 @@ class VacancySearchView(FormView):
 
         return super().form_valid(form)
 
-
 # Страница с результатами поиска
 class ResultsView(ListView):
     template_name = 'results.html'
     context_object_name = 'vacancies'
+    paginate_by = 20
 
     def get_queryset(self):
-        # Возвращаем все вакансии
-        return Vacancy.objects.all()
+        # Возвращаем все вакансии, отсортированные по id
+        return Vacancy.objects.all().order_by('id')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         # Получаем топ-10 навыков по количеству связанных вакансий
         top_skills = Skill.objects.annotate(vacancy_count=Count('vacancies')).order_by('-vacancy_count')[:10]
         context['skills'] = top_skills
-
         return context
 
 # Страница контактов
@@ -82,6 +80,6 @@ class StatisticsView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Получаем количество вакансий для каждого навыка
-        skills_with_count = Skill.objects.annotate(vacancy_count=Count('vacancy'))
+        skills_with_count = Skill.objects.annotate(vacancy_count=Count('vacancies')).order_by('-vacancy_count')
         context['skills_with_count'] = skills_with_count
         return context

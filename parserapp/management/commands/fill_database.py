@@ -45,14 +45,14 @@ class Command(BaseCommand):
             'experience': experience,
             'schedule': schedule,
             'page': 0,
-            'per_page': 50
+            'per_page': 50  # Увеличиваем количество вакансий на странице
         }
 
         # Добавляем регион в параметры, только если он указан
         if location:
             params['area'] = location
 
-        while len(vacancies) < 20:
+        while True:
             response = requests.get(URL_VACANCIES, params=params)
             if response.status_code != 200:
                 self.stdout.write(self.style.ERROR(f"Ошибка при запросе: {response.status_code}"))
@@ -68,7 +68,7 @@ class Command(BaseCommand):
             params['page'] += 1
 
         self.stdout.write(self.style.SUCCESS(f"Получено {len(vacancies)} вакансий"))
-        return vacancies[:20]
+        return vacancies  # Возвращаем все найденные вакансии
 
     def save_to_database(self, vacancies):
         # Словарь для подсчета частоты навыков
