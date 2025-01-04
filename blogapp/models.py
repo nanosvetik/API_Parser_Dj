@@ -7,6 +7,13 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
 
+class PostManager(models.Manager):
+    def published(self):
+        """
+        Возвращает только опубликованные посты.
+        """
+        return self.filter(status='published')
+
 class Post(models.Model):
     STATUS_CHOICES = [
         ('draft', 'Черновик'),
@@ -22,7 +29,8 @@ class Post(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     tags = models.ManyToManyField(Tag, blank=True)
 
+    # Кастомный менеджер
+    objects = PostManager()
+
     def __str__(self):
         return self.title
-
-# Create your models here.
