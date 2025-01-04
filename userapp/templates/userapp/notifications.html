@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>Уведомления</h1>
+    <ul>
+        {% for notification in notifications %}
+            <li>
+                <strong>{{ notification.created_at }}</strong>: {{ notification.message }}
+                {% if not notification.is_read %}
+                    <span class="badge bg-primary">Новое</span>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

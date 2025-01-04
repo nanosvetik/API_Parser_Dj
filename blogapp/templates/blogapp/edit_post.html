@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Создать пост{% endblock %}
+{% block title %}Редактировать пост{% endblock %}
 
 {% block content %}
 <div class="container my-5">
@@ -17,12 +17,12 @@
 
             <div class="card shadow">
                 <div class="card-body">
-                    <h2 class="card-title text-center mb-4">Создать пост</h2>
+                    <h2 class="card-title text-center mb-4">Редактировать пост</h2>
 
                     <!-- Уведомление для авторов -->
                     {% if user.userprofile.role == 'author' %}
                         <div class="alert alert-info" role="alert">
-                            Ваш пост будет отправлен на модерацию перед публикацией.
+                            После редактирования ваш пост будет отправлен на модерацию.
                         </div>
                     {% endif %}
 
@@ -83,13 +83,14 @@
                         </div>
 
                         <!-- Кнопки -->
-                        <div class="d-grid gap-2 mt-4">
+                        <div class="d-grid gap-2">
                             <button type="submit" name="action" value="moderation" class="btn btn-primary">
                                 Отправить на модерацию
                             </button>
                             <button type="submit" name="action" value="draft" class="btn btn-secondary">
                                 Сохранить как черновик
                             </button>
+                            <a href="{% url 'post_detail' pk=post.pk %}" class="btn btn-outline-secondary">Отмена</a>
                         </div>
                     </form>
                 </div>

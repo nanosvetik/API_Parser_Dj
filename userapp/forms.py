@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from .models import UserProfile
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)  # Поле email обязательно
@@ -19,3 +20,13 @@ class RegisterForm(UserCreationForm):
 class LoginForm(forms.Form):
     username = forms.CharField()
     password = forms.CharField(widget=forms.PasswordInput)
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ['avatar']  # Поля, которые можно редактировать
+
+class AdminProfileForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ['role']

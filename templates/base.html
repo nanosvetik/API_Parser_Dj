@@ -43,7 +43,16 @@
                             </li>
                         {% endif %}
                         <li class="nav-item">
-                            <span class="nav-link">Привет, {{ user.username }}! ({{ user_role }})</span>
+                            <a class="nav-link" href="{% url 'profile' %}">Личный кабинет</a>
+                        </li>
+                        <li class="nav-item">
+                            <span class="nav-link">
+                                {% if user_profile.avatar %}
+                                    <img src="{{ user_profile.avatar.url }}" alt="Аватарка" class="rounded-circle" width="30" height="30">
+                                {% endif %}
+                                Привет, {{ user.username }}!
+                                <span class="badge bg-secondary">{{ user_role }}</span>
+                            </span>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'logout' %}">Выйти</a>

@@ -29,8 +29,20 @@ class Post(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     tags = models.ManyToManyField(Tag, blank=True)
 
+    def __str__(self):
+        return self.title
+
     # Кастомный менеджер
     objects = PostManager()
 
     def __str__(self):
         return self.title
+
+class Comment(models.Model):
+    post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='comments')  # Строковая ссылка на модель Post
+    author = models.ForeignKey(User, on_delete=models.CASCADE)  # Автор комментария
+    content = models.TextField()  # Текст комментария
+    created_at = models.DateTimeField(auto_now_add=True)  # Дата создания
+
+    def __str__(self):
+        return f'Комментарий от {self.author.username} к посту "{self.post.title}"'

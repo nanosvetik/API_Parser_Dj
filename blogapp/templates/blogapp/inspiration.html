@@ -10,17 +10,33 @@
         <div class="row gx-5 align-items-center justify-content-center">
             <div class="col-lg-8 col-xl-7 col-xxl-6">
                 <div class="my-5 text-center text-xl-start">
-                    <h1 class="display-5 fw-bolder text-white mb-2">Привет! Меня зовут Светлана, и я автор этого проекта.</h1>
-                    <p class="lead fw-normal text-white-50 mb-4">
+                    <h1 class="display-5 fw-bolder text-white mb-4">Привет! Меня зовут Светлана, и я автор этого проекта.</h1>
+                    <p class="lead fw-normal text-white-50 mb-3 fst-italic">
                         Этот проект создан, чтобы помочь соискателям не сдаваться в поиске работы.
-                        Здесь вы можете делиться своими историями, вдохновлять других и помогать избежать ошибок,
-                        связанных с недобросовестными работодателями. Давайте поддерживать друг друга!
+                    </p>
+                    <p class="lead fw-normal text-white-50 mb-3 fst-italic">
+                        Здесь вы можете вдохновлять других, делясь своими историями успеха, учиться на чужих ошибках и предостерегать друг друга от недобросовестных работодателей.
+                    </p>
+                    <p class="lead fw-normal text-white-50 mb-4 fst-italic">
+                        Давайте поддерживать друг друга!
                     </p>
                     <div class="d-grid gap-3 d-sm-flex justify-content-sm-center justify-content-xl-start">
                         {% if user.is_authenticated %}
-                            <a class="btn btn-primary btn-lg px-4 me-sm-3" href="{% url 'create_post' %}">НАЧАТЬ</a>
+                            {% if user.userprofile.role == 'reader' %}
+                                <!-- Сообщение для читателей -->
+                                <div class="alert alert-warning" role="alert">
+                                    У вас нет прав для создания постов. Если вы хотите стать автором, <a href="{% url 'profile' %}" class="alert-link">отправьте запрос</a>.
+                                </div>
+                            {% else %}
+                                <!-- Кнопка "НАЧАТЬ" для авторов, модераторов и администраторов -->
+                                <a class="btn btn-primary btn-lg px-4 me-sm-3" href="{% url 'create_post' %}">НАЧАТЬ</a>
+                            {% endif %}
                         {% else %}
+                            <!-- Кнопка для незарегистрированных пользователей -->
                             <a class="btn btn-primary btn-lg px-4 me-sm-3" href="{% url 'login' %}">ВОЙТИ, ЧТОБЫ НАЧАТЬ</a>
+                            <p class="text-white-50 mt-2">
+                                Ещё не зарегистрированы? <a href="{% url 'register' %}" class="text-white">Создайте аккаунт</a>.
+                            </p>
                         {% endif %}
                     </div>
                 </div>
@@ -32,91 +48,140 @@
     </div>
 </header>
 
+<!-- Поиск по тегам -->
+<section class="py-5">
+    <div class="container px-5">
+        <h2 class="mb-4">Поиск по тегам</h2>
+        <form method="get" action="{% url 'inspiration' %}" class="mb-4">
+            <div class="input-group">
+                <select name="tag" class="form-select">
+                    <option value="">Все теги</option>
+                    {% for tag in all_tags %}
+                        <option value="{{ tag.name }}" {% if request.GET.tag == tag.name %}selected{% endif %}>
+                            {{ tag.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary">Найти</button>
+            </div>
+        </form>
+    </div>
+</section>
+
 <!-- Список постов -->
 <section class="py-5">
     <div class="container px-5">
         <h2 class="mb-4">Истории пользователей</h2>
-        {% if user.is_authenticated %}
-            <div class="accordion" id="postsAccordion">
-                {% for post in page_obj %}
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="heading{{ post.pk }}">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#collapse{{ post.pk }}" aria-expanded="true"
-                                    aria-controls="collapse{{ post.pk }}">
-                                {{ post.title }}
-                            </button>
-                        </h2>
-                        <div id="collapse{{ post.pk }}" class="accordion-collapse collapse"
-                             aria-labelledby="heading{{ post.pk }}" data-bs-parent="#postsAccordion">
-                            <div class="accordion-body">
-                                <p>{{ post.content|truncatechars:100 }}</p>
-                                <p class="text-muted">Автор: {{ post.author.username }}</p>
-                                <p class="text-muted">Дата создания: {{ post.created_at|date:"d.m.Y H:i" }}</p>
-                            </div>
+        <div class="accordion" id="postsAccordion">
+            {% for post in page_obj %}
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading{{ post.pk }}">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapse{{ post.pk }}" aria-expanded="true"
+                                aria-controls="collapse{{ post.pk }}">
+                            <!-- Аватарка автора -->
+                            {% if post.author.userprofile.avatar %}
+                                <img src="{{ post.author.userprofile.avatar.url }}"
+                                     alt="Аватар {{ post.author.username }}"
+                                     class="rounded-circle me-3"
+                                     width="40"
+                                     height="40">
+                            {% endif %}
+                            {{ post.title }}
+                            {% if user.is_authenticated and user.userprofile.role in 'admin moderator' %}
+                                <span class="badge bg-warning ms-2">{{ post.get_status_display }}</span>
+                            {% endif %}
+                        </button>
+                    </h2>
+                    <div id="collapse{{ post.pk }}" class="accordion-collapse collapse"
+                         aria-labelledby="heading{{ post.pk }}" data-bs-parent="#postsAccordion">
+                        <div class="accordion-body">
+                            <p>{{ post.content|truncatechars:100 }}</p>
+                            <p class="text-muted">Автор: {{ post.author.username }}</p>
+                            <p class="text-muted">Дата создания: {{ post.created_at|date:"d.m.Y H:i" }}</p>
+                            <p class="text-muted">Теги:
+                                {% for tag in post.tags.all %}
+                                    <span class="badge bg-secondary">{{ tag.name }}</span>
+                                {% endfor %}
+                            </p>
+
+                            <!-- Кнопка "Подробнее" только для авторизованных пользователей -->
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'post_detail' pk=post.pk %}" class="btn btn-primary btn-sm me-2">Подробнее</a>
+                            {% else %}
+                                <div class="alert alert-info" role="alert">
+                                    Чтобы читать полный текст, <a href="{% url 'login' %}" class="alert-link">войдите</a> или
+                                    <a href="{% url 'register' %}" class="alert-link">зарегистрируйтесь</a>.
+                                </div>
+                            {% endif %}
+
+                            <!-- Кнопки редактирования и удаления -->
+                            {% if user.is_authenticated and user == post.author or user.userprofile.role in 'admin moderator' %}
+                                <a href="{% url 'edit_post' pk=post.pk %}" class="btn btn-warning btn-sm me-2">
+                                    <i class="bi bi-pencil"></i> Редактировать
+                                </a>
+                                <a href="{% url 'delete_post' pk=post.pk %}" class="btn btn-danger btn-sm">
+                                    <i class="bi bi-trash"></i> Удалить
+                                </a>
+                            {% endif %}
                         </div>
                     </div>
-                {% empty %}
-                    <p>Пока нет опубликованных историй. Будьте первым!</p>
-                {% endfor %}
-            </div>
+                </div>
+            {% empty %}
+                <p>Пока нет опубликованных историй. Будьте первым!</p>
+            {% endfor %}
+        </div>
 
-            <!-- Пагинация -->
-            <nav aria-label="Page navigation">
-                <ul class="pagination justify-content-center mt-4">
-                    {% if page_obj.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page=1" aria-label="First">
-                                <span aria-hidden="true">&laquo;&laquo;</span>
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
-                            </a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link">&laquo;&laquo;</span>
-                        </li>
-                        <li class="page-item disabled">
-                            <span class="page-link">&laquo;</span>
-                        </li>
-                    {% endif %}
-
-                    <li class="page-item active">
-                        <span class="page-link">
-                            Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
-                        </span>
+        <!-- Пагинация -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mt-4">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
                     </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;&laquo;</span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                    </li>
+                {% endif %}
 
-                    {% if page_obj.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
-                                <span aria-hidden="true">&raquo;&raquo;</span>
-                            </a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link">&raquo;</span>
-                        </li>
-                        <li class="page-item disabled">
-                            <span class="page-link">&raquo;&raquo;</span>
-                        </li>
-                    {% endif %}
-                </ul>
-            </nav>
-        {% else %}
-            <div class="alert alert-info" role="alert">
-                Чтобы читать истории, <a href="{% url 'login' %}" class="alert-link">войдите</a> или
-                <a href="{% url 'register' %}" class="alert-link">зарегистрируйтесь</a>.
-            </div>
-        {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">
+                        Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;&raquo;</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
     </div>
 </section>
 {% endblock %}

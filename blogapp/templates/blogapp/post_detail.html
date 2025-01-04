@@ -1,9 +1,69 @@
 {% extends 'base.html' %}
 
+{% block title %}{{ post.title }}{% endblock %}
+
 {% block content %}
-<h1>{{ post.title }}</h1>
-<p>{{ post.content }}</p>
-<p>Автор: {{ post.author.username }}</p>
-<p>Дата создания: {{ post.created_at }}</p>
-<p>Статус: {{ post.get_status_display }}</p>
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h2 class="card-title text-center mb-4">{{ post.title }}</h2>
+
+                    <!-- Отображение содержимого поста с абзацами -->
+                    <div class="mb-4">
+                        {{ post.content|linebreaks }}
+                    </div>
+
+                    <!-- Информация о посте -->
+                    <p class="text-muted">Автор: {{ post.author.username }}</p>
+                    <p class="text-muted">Дата создания: {{ post.created_at|date:"d.m.Y H:i" }}</p>
+
+                    <!-- Кнопки редактирования и удаления -->
+                    {% if user == post.author or user.is_staff %}
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'edit_post' pk=post.pk %}" class="btn btn-warning">
+                                <i class="bi bi-pencil"></i> Редактировать
+                            </a>
+                            <a href="{% url 'delete_post' pk=post.pk %}" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Удалить
+                            </a>
+                        </div>
+                    {% endif %}
+
+                    <!-- Комментарии -->
+                    <h3 class="mt-4">Комментарии</h3>
+                    {% for comment in post.comments.all %}
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <p class="card-text">{{ comment.content|linebreaks }}</p>
+                                <p class="text-muted">
+                                    <small>Автор: {{ comment.author.username }} | {{ comment.created_at|date:"d.m.Y H:i" }}</small>
+                                </p>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p>Пока нет комментариев. Будьте первым!</p>
+                    {% endfor %}
+
+                    <!-- Форма для добавления комментария -->
+                    {% if user.is_authenticated %}
+                        <h3 class="mt-4">Добавить комментарий</h3>
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <textarea name="content" class="form-control" rows="3" placeholder="Ваш комментарий"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Отправить</button>
+                        </form>
+                    {% else %}
+                        <div class="alert alert-info mt-4" role="alert">
+                            Чтобы оставить комментарий, <a href="{% url 'login' %}">войдите</a> или <a href="{% url 'register' %}">зарегистрируйтесь</a>.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
