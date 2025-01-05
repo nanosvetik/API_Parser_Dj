@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'parserapp',
     'blogapp',
     'userapp',
-
+    'faq',
 ]
 
 MIDDLEWARE = [
@@ -148,11 +148,3 @@ INTERNAL_IPS = [
     # ...
 ]
 
-# Настройки почты
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.yandex.ru'  # Для Yandex
-EMAIL_PORT = 465
-EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'svet.flegontova@yandex.ru'  # Ваш email
-EMAIL_HOST_PASSWORD = 'wueoztcreyxosqtw'  # Пароль от почты
-DEFAULT_FROM_EMAIL = 'svet.flegontova@yandex.ru'  # Ваш email

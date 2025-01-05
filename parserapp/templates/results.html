@@ -13,6 +13,8 @@
                     <th scope="col">#</th>
                     <th scope="col">Название</th>
                     <th scope="col">Описание</th>
+                    <th scope="col">Формат работы</th>
+                    <th scope="col">Тип занятости</th>
                     <th scope="col">Ссылка</th>
                 </tr>
             </thead>
@@ -22,11 +24,19 @@
                     <th scope="row">{{ forloop.counter }}</th>
                     <td>{{ vacancy.title }}</td>
                     <td>{{ vacancy.description|default:"Описание не указано" }}</td>
+                    <td>
+                        {% if vacancy.work_format %}
+                            {{ vacancy.work_format.0.name|default:"Не указано" }}
+                        {% else %}
+                            Не указано
+                        {% endif %}
+                    </td>
+                    <td>{{ vacancy.employment_type|default:"Не указано" }}</td>
                     <td><a href="{{ vacancy.url }}" target="_blank">Перейти</a></td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="4" class="text-center">Нет вакансий, соответствующих вашему запросу.</td>
+                    <td colspan="6" class="text-center">Нет вакансий, соответствующих вашему запросу.</td>
                 </tr>
                 {% endfor %}
             </tbody>

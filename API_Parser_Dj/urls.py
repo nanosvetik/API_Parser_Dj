@@ -14,22 +14,20 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
+# API_Parser_Dj/urls.py
 from django.contrib import admin
 from django.urls import path, include
-from parserapp.views import IndexView, VacancySearchView, ResultsView, ContactView, StatisticsView
 from django.conf import settings
 from django.conf.urls.static import static
 from debug_toolbar.toolbar import debug_toolbar_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', IndexView.as_view(), name='index'),  # Главная страница
-    path('form/', VacancySearchView.as_view(), name='form'),  # Форма поиска
-    path('results/', ResultsView.as_view(), name='results'),  # Результаты
-    path('statistics/', StatisticsView.as_view(), name='statistics'),  # Статистика
-    path('user/', include('userapp.urls')),
+    path('', include('parserapp.urls')),  # Все маршруты parserapp
+    path('user/', include('userapp.urls')),  # Маршруты userapp
     path('blog/', include('blogapp.urls')),  # Маршруты blogapp
-    path('contact/', ContactView.as_view(), name='contact'),  # Новый маршрут для контактов
+    path('faq/', include('faq.urls')),  # Маршруты faq
 ] + debug_toolbar_urls()
 
 # Добавляем обработку медиафайлов в режиме разработки

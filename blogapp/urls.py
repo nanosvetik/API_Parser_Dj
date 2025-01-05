@@ -1,3 +1,4 @@
+# blogapp/urls.py
 from django.urls import path
 from . import views  # Импортируем представления из текущего приложения
 
