@@ -22,8 +22,12 @@
                 {{ form.experience }}
             </div>
             <div class="mb-3">
-                {{ form.schedule.label_tag }}
-                {{ form.schedule }}
+                {{ form.work_format.label_tag }}  <!-- Новое поле -->
+                {{ form.work_format }}
+            </div>
+            <div class="mb-3">
+                {{ form.employment_type.label_tag }}  <!-- Новое поле -->
+                {{ form.employment_type }}
             </div>
             <div class="text-center">
                 <button type="submit" class="btn btn-primary">Найти вакансии</button>

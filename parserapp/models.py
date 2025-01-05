@@ -1,3 +1,4 @@
+# parserapp/models.py
 from django.db import models
 
 class Skill(models.Model):
@@ -12,12 +13,10 @@ class Vacancy(models.Model):
     url = models.URLField()
     location = models.CharField(max_length=255)
     experience = models.CharField(max_length=255)
-    schedule = models.CharField(max_length=255)
+    work_format = models.CharField(max_length=255, null=True, blank=True)  # Новое поле
+    employment_type = models.CharField(max_length=255, null=True, blank=True)  # Новое поле
     skills = models.ManyToManyField('Skill', related_name='vacancies')
-    created_at = models.DateTimeField(auto_now_add=True)  # Добавляем поле created_at
-
-    def __str__(self):
-        return self.title
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title

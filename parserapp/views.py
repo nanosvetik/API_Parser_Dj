@@ -1,13 +1,14 @@
+# parserapp/views.py
 from django.views.generic import TemplateView, FormView, ListView
 from django.db.models import Count
-from .forms import VacancySearchForm
-from .management.commands.fill_database import Command as FillDatabaseCommand
-from .models import Vacancy, Skill
-from .services import get_area_id
 from django.core.mail import send_mail
 from django.shortcuts import redirect
 from django.contrib import messages
 from django.conf import settings
+from .forms import VacancySearchForm
+from .models import Vacancy, Skill
+from .services import get_area_id
+from .management.commands.fill_database import Command as FillDatabaseCommand
 
 # Главная страница
 class IndexView(TemplateView):
@@ -21,12 +22,13 @@ class VacancySearchView(FormView):
 
     def form_valid(self, form):
         job_title = form.cleaned_data['title']
-        location_name = form.cleaned_data['location']  # Название региона
+        location_name = form.cleaned_data['location']
         experience = form.cleaned_data['experience']
-        schedule = form.cleaned_data['schedule']
+        work_format = form.cleaned_data['work_format']  # Новое поле
+        employment_type = form.cleaned_data['employment_type']  # Новое поле
 
         if not job_title:
-            self.stdout.write(self.style.ERROR('Профессия не указана.'))
+            messages.error(self.request, 'Профессия не указана.')
             return super().form_valid(form)
 
         # Преобразуем название региона в ID
@@ -34,7 +36,7 @@ class VacancySearchView(FormView):
         if location_name:
             location_id = get_area_id(location_name)
             if not location_id:
-                self.stdout.write(self.style.ERROR(f'Регион "{location_name}" не найден.'))
+                messages.error(self.request, f'Регион "{location_name}" не найден.')
                 return super().form_valid(form)
 
         # Сохраняем параметры поиска в сессии
@@ -42,7 +44,8 @@ class VacancySearchView(FormView):
             'title': job_title,
             'location': location_name,
             'experience': experience,
-            'schedule': schedule,
+            'work_format': work_format,  # Новое поле
+            'employment_type': employment_type,  # Новое поле
         }
 
         # Запускаем парсер с указанными параметрами
@@ -50,7 +53,8 @@ class VacancySearchView(FormView):
         fill_database_command.handle(
             profession=job_title,
             experience=experience,
-            schedule=schedule,
+            work_format=work_format,  # Новое поле
+            employment_type=employment_type,  # Новое поле
             location=location_id if location_id else 1  # Передаем 1 (Москва), если регион не указан
         )
 
