@@ -17,15 +17,21 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from parserapp.views import IndexView, VacancySearchView, ResultsView, ContactView, StatisticsView
-
+from django.conf import settings
+from django.conf.urls.static import static
+from debug_toolbar.toolbar import debug_toolbar_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', IndexView.as_view(), name='index'),  # Главная страница
     path('form/', VacancySearchView.as_view(), name='form'),  # Форма поиска
     path('results/', ResultsView.as_view(), name='results'),  # Результаты
-    path('contact/', ContactView.as_view(), name='contact'),  # Контакты
-    path('statistics/', StatisticsView.as_view(), name='statistics'), # Статистика
+    path('statistics/', StatisticsView.as_view(), name='statistics'),  # Статистика
     path('user/', include('userapp.urls')),
     path('blog/', include('blogapp.urls')),  # Маршруты blogapp
-]
+    path('contact/', ContactView.as_view(), name='contact'),  # Новый маршрут для контактов
+] + debug_toolbar_urls()
+
+# Добавляем обработку медиафайлов в режиме разработки
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,10 +1,35 @@
 {% extends 'base.html' %}
 
+{% block title %}Вход{% endblock %}
+
 {% block content %}
-<h2>Авторизация</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Войти</button>
-</form>
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <h2 class="card-title text-center mb-4">Вход</h2>
+                    <form method="post">
+                        {% csrf_token %}
+                        <!-- Поле "Имя пользователя" -->
+                        <div class="mb-3">
+                            <input type="text" name="username" class="form-control form-control-lg" placeholder="Имя пользователя" required>
+                        </div>
+                        <!-- Поле "Пароль" -->
+                        <div class="mb-4">
+                            <input type="password" name="password" class="form-control form-control-lg" placeholder="Пароль" required>
+                        </div>
+                        <!-- Кнопка "Войти" -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Войти</button>
+                        </div>
+                    </form>
+                    <div class="text-center mt-3">
+                        <p class="text-muted">Нет аккаунта? <a href="{% url 'register' %}">Зарегистрируйтесь</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

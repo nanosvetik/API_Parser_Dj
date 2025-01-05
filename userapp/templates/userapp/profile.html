@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Личный кабинет{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="text-center mb-4">Личный кабинет</h1>
+    <div class="row">
+        <!-- Боковая панель с информацией о пользователе -->
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <!-- Аватарка -->
+                    {% if user_profile.avatar %}
+                        <img src="{{ user_profile.avatar.url }}"
+                             alt="Аватарка"
+                             class="rounded-circle mb-3"
+                             width="150"
+                             height="150">
+                    {% else %}
+                        <p class="text-muted">Аватарка не загружена.</p>
+                    {% endif %}
+                    <h5 class="card-title">{{ user.username }}</h5>
+                    <p class="card-text">Роль: {{ user_profile.get_role_display }}</p>
+
+                    <!-- Уведомления -->
+                    <a href="{% url 'notifications' %}" class="btn btn-info w-100 mb-3">
+                        Уведомления
+                        {% if unread_notifications_count > 0 %}
+                            <span class="badge bg-danger">{{ unread_notifications_count }}</span>
+                        {% endif %}
+                    </a>
+
+                    <!-- Запрос статуса "автор" -->
+                    {% if user_profile.role == 'reader' and not user_profile.requested_author %}
+                        <a href="{% url 'request_author_status' %}" class="btn btn-primary w-100">
+                            Запросить статус "автор"
+                        </a>
+                    {% elif user_profile.requested_author %}
+                        <p class="text-info">Ваш запрос на статус "автор" ожидает рассмотрения.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Основная часть с формой редактирования профиля -->
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h2 class="card-title mb-4">Редактирование профиля</h2>
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="{{ form.avatar.id_for_label }}" class="form-label">Аватар</label>
+                            {{ form.avatar }}
+                            {% if form.avatar.errors %}
+                                <div class="text-danger">
+                                    {{ form.avatar.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Сохранить изменения</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

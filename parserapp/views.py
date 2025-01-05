@@ -4,6 +4,10 @@ from .forms import VacancySearchForm
 from .management.commands.fill_database import Command as FillDatabaseCommand
 from .models import Vacancy, Skill
 from .services import get_area_id
+from django.core.mail import send_mail
+from django.shortcuts import redirect
+from django.contrib import messages
+from django.conf import settings
 
 # Главная страница
 class IndexView(TemplateView):
@@ -64,14 +68,34 @@ class ResultsView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
         # Получаем топ-10 навыков по количеству связанных вакансий
         top_skills = Skill.objects.annotate(vacancy_count=Count('vacancies')).order_by('-vacancy_count')[:10]
-        context['skills'] = top_skills
+        context['skills'] = top_skills  # Добавляем навыки в контекст шаблона
+
         return context
 
 # Страница контактов
 class ContactView(TemplateView):
     template_name = 'contact.html'
+
+    def post(self, request, *args, **kwargs):
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        message = request.POST.get('message')
+        if name and email and message:
+            subject = f"Сообщение от {name} ({email})"
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [settings.DEFAULT_FROM_EMAIL],
+                fail_silently=False,
+            )
+            messages.success(request, 'Сообщение отправлено!')
+        else:
+            messages.error(request, 'Все поля обязательны для заполнения.')
+        return redirect('contact')
 
 # Страница статистики
 class StatisticsView(TemplateView):
