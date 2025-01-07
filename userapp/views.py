@@ -15,9 +15,13 @@ def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            # Профиль создается автоматически через сигнал
+            user = form.save()  # Сохраняем пользователя
+            # Автоматически авторизуем пользователя после регистрации
+            login(request, user)
             return redirect('index')  # Перенаправляем на главную страницу
+        else:
+            # Если форма не прошла валидацию, показываем ошибки
+            messages.error(request, 'Ошибка при заполнении формы. Проверьте данные.')
     else:
         form = RegisterForm()
     return render(request, 'userapp/register.html', {'form': form})
@@ -42,7 +46,11 @@ def user_logout(request):
 
 @login_required
 def profile(request):
-    user_profile = UserProfile.objects.get(user=request.user)  # Получаем профиль пользователя
+    user_profile = request.user.userprofile  # Получаем профиль пользователя
+
+    # Вычисляем количество непрочитанных уведомлений
+    unread_notifications_count = Notification.objects.filter(user=request.user, is_read=False).count()
+
     if request.method == 'POST':
         form = ProfileForm(request.POST, request.FILES, instance=user_profile)  # Обрабатываем форму
         if form.is_valid():
@@ -51,10 +59,11 @@ def profile(request):
     else:
         form = ProfileForm(instance=user_profile)  # Создаём форму с текущими данными
 
-    # Передаём user_profile в контекст шаблона
+    # Передаём user_profile и unread_notifications_count в контекст шаблона
     return render(request, 'userapp/profile.html', {
         'form': form,
-        'user_profile': user_profile,  # Добавляем user_profile в контекст
+        'user_profile': user_profile,
+        'unread_notifications_count': unread_notifications_count,
     })
 
 # Проверка, является ли пользователь администратором
@@ -99,8 +108,10 @@ def request_author_status(request):
 
 @login_required
 def notifications(request):
-    """
-    Представление для отображения уведомлений пользователя.
-    """
-    user_notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    # Получаем все уведомления пользователя
+    user_notifications = request.user.notifications.all().order_by('-created_at')
+
+    # Помечаем все уведомления как прочитанные
+    user_notifications.filter(is_read=False).update(is_read=True)
+
     return render(request, 'userapp/notifications.html', {'notifications': user_notifications})

@@ -9,6 +9,18 @@
             <div class="card shadow">
                 <div class="card-body p-5">
                     <h2 class="card-title text-center mb-4">Регистрация</h2>
+
+                    <!-- Блок для отображения сообщений -->
+                    {% if messages %}
+                        <div class="messages">
+                            {% for message in messages %}
+                                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
                     <form method="post">
                         {% csrf_token %}
                         <!-- Поле "Имя пользователя" -->

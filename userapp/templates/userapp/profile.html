@@ -36,8 +36,6 @@
                         <a href="{% url 'request_author_status' %}" class="btn btn-primary w-100">
                             Запросить статус "автор"
                         </a>
-                    {% elif user_profile.requested_author %}
-                        <p class="text-info">Ваш запрос на статус "автор" ожидает рассмотрения.</p>
                     {% endif %}
                 </div>
             </div>
