@@ -1,17 +1,20 @@
+# userapp/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
-from .forms import RegisterForm, LoginForm
 from django.contrib.auth.models import User
-from .models import UserProfile
-from django.contrib.auth.decorators import login_required
-from .forms import ProfileForm
-from .forms import AdminProfileForm
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
+from .forms import RegisterForm, LoginForm, ProfileForm, AdminProfileForm
+from .models import UserProfile, Notification
 
-from .models import Notification
+# Импорты для Django REST Framework
+from rest_framework import viewsets
+from .serializers import UserProfileSerializer, NotificationSerializer
 
 def register(request):
+    """
+    Представление для регистрации нового пользователя.
+    """
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
@@ -27,6 +30,9 @@ def register(request):
     return render(request, 'userapp/register.html', {'form': form})
 
 def user_login(request):
+    """
+    Представление для входа пользователя.
+    """
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -41,11 +47,17 @@ def user_login(request):
     return render(request, 'userapp/login.html', {'form': form})
 
 def user_logout(request):
+    """
+    Представление для выхода пользователя.
+    """
     logout(request)
     return redirect('index')
 
 @login_required
 def profile(request):
+    """
+    Представление для отображения и редактирования профиля пользователя.
+    """
     user_profile = request.user.userprofile  # Получаем профиль пользователя
 
     # Вычисляем количество непрочитанных уведомлений
@@ -72,6 +84,9 @@ def is_admin(user):
 
 @user_passes_test(is_admin)
 def edit_user_role(request, user_id):
+    """
+    Представление для редактирования роли пользователя (доступно только администраторам).
+    """
     user_profile = get_object_or_404(UserProfile, user__id=user_id)
     if request.method == 'POST':
         form = AdminProfileForm(request.POST, instance=user_profile)
@@ -84,6 +99,9 @@ def edit_user_role(request, user_id):
 
 @user_passes_test(is_admin)
 def user_list(request):
+    """
+    Представление для отображения списка пользователей (доступно только администраторам).
+    """
     users = UserProfile.objects.all()
     return render(request, 'userapp/user_list.html', {'users': users})
 
@@ -108,6 +126,9 @@ def request_author_status(request):
 
 @login_required
 def notifications(request):
+    """
+    Представление для отображения уведомлений пользователя.
+    """
     # Получаем все уведомления пользователя
     user_notifications = request.user.notifications.all().order_by('-created_at')
 
@@ -115,3 +136,13 @@ def notifications(request):
     user_notifications.filter(is_read=False).update(is_read=True)
 
     return render(request, 'userapp/notifications.html', {'notifications': user_notifications})
+
+# ViewSet для модели UserProfile
+class UserProfileViewSet(viewsets.ModelViewSet):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+
+# ViewSet для модели Notification
+class NotificationViewSet(viewsets.ModelViewSet):
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
