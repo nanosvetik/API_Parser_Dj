@@ -27,7 +27,9 @@ urlpatterns = [
     path('', include('parserapp.urls')),  # Все маршруты parserapp
     path('user/', include('userapp.urls')),  # Маршруты userapp
     path('blog/', include('blogapp.urls')),  # Маршруты blogapp
-    path('faq/', include('faq.urls')),  # Маршруты faq
+    path('faq/', include('faq.urls')),  # Маршруты
+    path('api-auth/', include('rest_framework.urls'))
+
 ] + debug_toolbar_urls()
 
 # Добавляем обработку медиафайлов в режиме разработки

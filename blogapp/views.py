@@ -1,3 +1,4 @@
+# blogapp/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -6,6 +7,10 @@ from django.core.cache import cache
 from .models import Post, Comment, Tag
 from .forms import PostForm, CommentForm
 import logging
+
+# Импорты для Django REST Framework
+from rest_framework import viewsets
+from .serializers import PostSerializer, CommentSerializer, TagSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -190,3 +195,18 @@ def delete_post(request, pk):
     post.delete()
     messages.success(request, "Пост успешно удален.")
     return redirect('inspiration')
+
+# ViewSet для модели Post
+class PostViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+
+# ViewSet для модели Comment
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+# ViewSet для модели Tag
+class TagViewSet(viewsets.ModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer

@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'blogapp',
     'userapp',
     'faq',
+    'rest_framework',
+    'django_cleanup.apps.CleanupConfig',
 ]
 
 MIDDLEWARE = [
@@ -148,3 +150,10 @@ INTERNAL_IPS = [
     # ...
 ]
 
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}
