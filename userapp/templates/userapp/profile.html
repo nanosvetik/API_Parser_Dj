@@ -37,6 +37,26 @@
                             Запросить статус "автор"
                         </a>
                     {% endif %}
+
+                    <!-- Управление токенами -->
+                    <div class="mt-3">
+                        <h6>Управление токенами</h6>
+                        <!-- Текущий токен -->
+                        <div class="mb-3">
+                            <label class="form-label">Текущий токен:</label>
+                            <input type="text" id="token-display" class="form-control" value="{{ token }}" readonly>
+                        </div>
+                        <!-- Форма для получения токена -->
+                        <form id="get-token-form" method="post" class="mb-2">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success w-100">Получить новый токен</button>
+                        </form>
+                        <!-- Форма для обновления токена -->
+                        <form id="refresh-token-form" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-warning w-100">Обновить токен</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -64,4 +84,46 @@
         </div>
     </div>
 </div>
+
+<!-- Добавляем JavaScript для обработки форм -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Функция для отправки AJAX-запроса
+        function sendAjaxRequest(url, formData, callback) {
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken'),  // Добавляем CSRF-токен
+                    'Accept': 'application/json',
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => callback(data))
+            .catch(error => console.error('Ошибка:', error));
+        }
+
+        // Обработка формы для получения токена
+        document.getElementById('get-token-form').addEventListener('submit', function (event) {
+            event.preventDefault();  // Отменяем стандартное поведение формы
+            const formData = new FormData(this);
+            sendAjaxRequest('{% url "api_token_get" %}', formData, function (data) {
+                if (data.token) {
+                    document.getElementById('token-display').value = data.token;  // Обновляем токен на странице
+                }
+            });
+        });
+
+        // Обработка формы для обновления токена
+        document.getElementById('refresh-token-form').addEventListener('submit', function (event) {
+            event.preventDefault();  // Отменяем стандартное поведение формы
+            const formData = new FormData(this);
+            sendAjaxRequest('{% url "api_token_refresh" %}', formData, function (data) {
+                if (data.token) {
+                    document.getElementById('token-display').value = data.token;  // Обновляем токен на странице
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

@@ -10,6 +10,12 @@ from .models import Vacancy, Skill
 from .services import get_area_id
 from .management.commands.fill_database import Command as FillDatabaseCommand
 
+# Импорты для Django REST Framework
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from .serializers import SkillSerializer, VacancySerializer
+
 # Главная страница
 class IndexView(TemplateView):
     template_name = 'index.html'
@@ -111,3 +117,33 @@ class StatisticsView(TemplateView):
         skills_with_count = Skill.objects.annotate(vacancy_count=Count('vacancies')).order_by('-vacancy_count')
         context['skills_with_count'] = skills_with_count
         return context
+
+# ViewSet для модели Skill
+class SkillViewSet(viewsets.ReadOnlyModelViewSet):  # Только чтение
+    """
+    ViewSet для модели Skill.
+    Пользователи могут только читать данные (GET-запросы).
+    """
+    queryset = Skill.objects.all()
+    serializer_class = SkillSerializer
+    permission_classes = [permissions.AllowAny]  # Чтение доступно всем
+
+class VacancyViewSet(viewsets.ReadOnlyModelViewSet):  # Только чтение
+    """
+    ViewSet для модели Vacancy.
+    Пользователи могут только читать данные (GET-запросы) и искать вакансии (POST-запросы).
+    """
+    queryset = Vacancy.objects.all()
+    serializer_class = VacancySerializer
+    permission_classes = [permissions.AllowAny]  # Чтение и поиск доступны всем
+
+    @action(detail=False, methods=['post'])
+    def search(self, request):
+        """
+        Действие для поиска вакансий.
+        Разрешает всем пользователям выполнять POST-запросы для поиска.
+        """
+        query = request.data.get('query', '')  # Получаем поисковый запрос из тела запроса
+        vacancies = Vacancy.objects.filter(title__icontains=query)  # Фильтруем вакансии по запросу
+        serializer = self.get_serializer(vacancies, many=True)  # Сериализуем результаты
+        return Response(serializer.data, status=status.HTTP_200_OK)  # Возвращаем результат
