@@ -1,4 +1,3 @@
-# blogapp/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -9,8 +8,11 @@ from .forms import PostForm, CommentForm
 import logging
 
 # Импорты для Django REST Framework
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from .serializers import PostSerializer, CommentSerializer, TagSerializer
+from .permissions import IsReader, IsAuthor, IsAuthorOrReadOnly, IsAdmin, IsAdminOrReadOnly
 
 logger = logging.getLogger(__name__)
 
@@ -144,7 +146,7 @@ def edit_post(request, pk):
     post = get_object_or_404(Post, pk=pk)
 
     # Проверяем, что пользователь является автором, модератором или администратором
-    if request.user != post.author and not request.user.is_staff:
+    if request.user != post.author and request.user.userprofile.role != 'admin':
         messages.error(request, "Вы не можете редактировать этот пост.")
         return redirect('inspiration')
 
@@ -187,7 +189,7 @@ def delete_post(request, pk):
     post = get_object_or_404(Post, pk=pk)
 
     # Проверяем, что пользователь является автором поста, модератором или администратором
-    if request.user != post.author and not request.user.is_staff:
+    if request.user != post.author and request.user.userprofile.role != 'admin':
         messages.error(request, "Вы не можете удалить этот пост.")
         return redirect('inspiration')
 
@@ -201,12 +203,51 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
+    def get_permissions(self):
+        """
+        Настраиваем права в зависимости от действия.
+        """
+        if self.request.user.is_authenticated and self.request.user.userprofile.role == 'admin':
+            # Админ имеет полные права на все действия
+            return [permissions.AllowAny()]
+        elif self.action in ['list', 'retrieve']:  # Чтение постов
+            return [permissions.IsAuthenticatedOrReadOnly()]
+        elif self.action in ['create']:  # Создание постов
+            return [IsAuthor()]  # Только авторы
+        elif self.action in ['update', 'partial_update', 'destroy']:  # Редактирование и удаление
+            return [IsAuthorOrReadOnly()]  # Только автор или админ
+        return [permissions.IsAuthenticatedOrReadOnly()]  # По умолчанию — только чтение
+
 # ViewSet для модели Comment
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
 
+    def get_permissions(self):
+        """
+        Настраиваем права в зависимости от действия.
+        """
+        if self.request.user.is_authenticated and self.request.user.userprofile.role == 'admin':
+            # Админ имеет полные права на все действия
+            return [permissions.AllowAny()]
+        elif self.action in ['list', 'retrieve']:  # Чтение комментариев
+            return [permissions.IsAuthenticatedOrReadOnly()]
+        elif self.action in ['create']:  # Создание комментариев
+            return [IsReader()]  # Только читатели и выше
+        elif self.action in ['update', 'partial_update', 'destroy']:  # Редактирование и удаление
+            return [IsAdminOrReadOnly()]  # Только администраторы
+        return [permissions.IsAuthenticatedOrReadOnly()]
+
 # ViewSet для модели Tag
-class TagViewSet(viewsets.ModelViewSet):
+class TagViewSet(viewsets.ModelViewSet):  # Изменено с ReadOnlyModelViewSet на ModelViewSet
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+
+    def get_permissions(self):
+        """
+        Настраиваем права в зависимости от действия.
+        """
+        if self.request.user.is_authenticated and self.request.user.userprofile.role == 'admin':
+            # Админ имеет полные права на все действия
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticatedOrReadOnly()]  # Остальные — только чтение

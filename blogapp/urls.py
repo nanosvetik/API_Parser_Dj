@@ -23,3 +23,4 @@ urlpatterns = [
     # Добавляем маршруты API
     path('api/', include(router.urls)),  # Все API-маршруты будут начинаться с /blog/api/
 ]
+

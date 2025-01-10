@@ -1,4 +1,3 @@
-# userapp/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -9,6 +8,11 @@ from .models import UserProfile, Notification
 
 # Импорты для Django REST Framework
 from rest_framework import viewsets
+from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from .serializers import UserProfileSerializer, NotificationSerializer
 
 def register(request):
@@ -63,6 +67,9 @@ def profile(request):
     # Вычисляем количество непрочитанных уведомлений
     unread_notifications_count = Notification.objects.filter(user=request.user, is_read=False).count()
 
+    # Получаем или создаем токен для текущего пользователя
+    token, created = Token.objects.get_or_create(user=request.user)
+
     if request.method == 'POST':
         form = ProfileForm(request.POST, request.FILES, instance=user_profile)  # Обрабатываем форму
         if form.is_valid():
@@ -71,11 +78,12 @@ def profile(request):
     else:
         form = ProfileForm(instance=user_profile)  # Создаём форму с текущими данными
 
-    # Передаём user_profile и unread_notifications_count в контекст шаблона
+    # Передаём user_profile, unread_notifications_count и токен в контекст шаблона
     return render(request, 'userapp/profile.html', {
         'form': form,
         'user_profile': user_profile,
         'unread_notifications_count': unread_notifications_count,
+        'token': token.key,  # Передаем токен в шаблон
     })
 
 # Проверка, является ли пользователь администратором
@@ -146,3 +154,30 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
+
+# Получение токена для текущего пользователя
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def get_token(request):
+    """
+    Получение токена для текущего пользователя.
+    """
+    user = request.user
+    # Удаляем старый токен, если он существует
+    Token.objects.filter(user=user).delete()  # Используем менеджер objects
+    # Создаем новый токен
+    token = Token.objects.create(user=user)  # Используем менеджер objects
+    return Response({'token': token.key}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def refresh_token(request):
+    """
+    Обновление токена для текущего пользователя.
+    """
+    user = request.user
+    # Удаляем старый токен, если он существует
+    Token.objects.filter(user=user).delete()  # Используем менеджер objects
+    # Создаем новый токен
+    token = Token.objects.create(user=user)  # Используем менеджер objects
+    return Response({'token': token.key}, status=status.HTTP_200_OK)

@@ -1,6 +1,9 @@
 # faq/views.py
 from django.shortcuts import render
 from .models import FAQ
+from rest_framework import viewsets
+from .serializers import FAQSerializer
+from .permissions import IsAdminOrReadOnly
 
 # Импорты для Django REST Framework
 from rest_framework import viewsets
@@ -24,3 +27,4 @@ def faq(request):
 class FAQViewSet(viewsets.ModelViewSet):
     queryset = FAQ.objects.all()
     serializer_class = FAQSerializer
+    permission_classes = [IsAdminOrReadOnly]  # Используем кастомное разрешение

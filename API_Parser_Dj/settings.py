@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'userapp',
     'faq',
     'rest_framework',
+    'rest_framework.authtoken',
     'django_cleanup.apps.CleanupConfig',
 ]
 
@@ -151,9 +152,13 @@ INTERNAL_IPS = [
 ]
 
 REST_FRAMEWORK = {
-    # Use Django's standard `django.contrib.auth` permissions,
-    # or allow read-only access for unauthenticated users.
+    # Права по умолчанию: только аутентифицированные пользователи могут изменять данные
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ]
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+    # Способы авторизации: сессии и токены
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',  # Для работы через браузер
+        'rest_framework.authentication.TokenAuthentication',    # Для работы через токены
+    ],
 }
