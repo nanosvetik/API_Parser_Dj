@@ -33,9 +33,14 @@
 
                     <!-- Запрос статуса "автор" -->
                     {% if user_profile.role == 'reader' and not user_profile.requested_author %}
-                        <a href="{% url 'request_author_status' %}" class="btn btn-primary w-100">
+                        <a href="{% url 'request_author_status' %}" class="btn btn-primary w-100 mb-3">
                             Запросить статус "автор"
                         </a>
+                    {% endif %}
+
+                    <!-- Отображение токена -->
+                    {% if user_token %}
+                        <p class="text-break">Токен: {{ user_token }}</p>
                     {% endif %}
                 </div>
             </div>

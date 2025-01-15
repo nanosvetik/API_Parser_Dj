@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
 from pathlib import Path
+from datetime import timedelta
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -43,6 +44,9 @@ INSTALLED_APPS = [
     'blogapp',
     'userapp',
     'faq',
+    'rest_framework',  # Для Django REST Framework
+    'rest_framework_simplejwt',
+    'django_cleanup',  # Для автоматической очистки файлов
 ]
 
 MIDDLEWARE = [
@@ -148,3 +152,16 @@ INTERNAL_IPS = [
     # ...
 ]
 
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # Время жизни access токена
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),    # Время жизни refresh токена
+    'ROTATE_REFRESH_TOKENS': True,                  # Автоматически обновлять refresh токен
+    'BLACKLIST_AFTER_ROTATION': True,               # Добавлять старые токены в черный список
+}
