@@ -7,6 +7,11 @@ from .models import Post, Comment, Tag
 from .forms import PostForm, CommentForm
 import logging
 
+from rest_framework import generics, permissions
+from .models import Post, Comment
+from .serializers import PostSerializer, CommentSerializer
+from rest_framework.exceptions import PermissionDenied
+
 logger = logging.getLogger(__name__)
 
 @login_required
@@ -190,3 +195,65 @@ def delete_post(request, pk):
     post.delete()
     messages.success(request, "Пост успешно удален.")
     return redirect('inspiration')
+
+
+# Права доступа для постов
+class IsAuthorOrAdmin(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        # Разрешаем доступ, если пользователь является автором или администратором
+        return obj.author == request.user or request.user.is_staff
+
+# Список постов (доступно всем)
+class PostListAPIView(generics.ListAPIView):
+    queryset = Post.objects.filter(status='published').order_by('-created_at')
+    serializer_class = PostSerializer
+    permission_classes = [permissions.AllowAny]
+
+# Детали поста (доступно только авторизованным пользователям)
+class PostDetailAPIView(generics.RetrieveAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticated]  # Только авторизованные пользователи
+
+# Создание поста (доступно авторам и администраторам)
+class PostCreateAPIView(generics.CreateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # Проверяем, что пользователь является автором или администратором
+        if not (self.request.user.is_staff or self.request.user.userprofile.role == 'author'):
+            raise PermissionDenied(
+                "Вы не можете создавать посты. Только авторы и администраторы имеют доступ к этой функции.")
+
+        # Автоматически назначаем автора поста
+        serializer.save(author=self.request.user)
+
+# Редактирование и удаление поста (доступно автору или администратору)
+class PostUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAuthorOrAdmin]
+
+# Список комментариев (доступно только авторизованным пользователям)
+class CommentListAPIView(generics.ListAPIView):
+    queryset = Comment.objects.all().order_by('-created_at')
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticated]  # Только авторизованные пользователи
+
+# Создание комментария (доступно авторизованным пользователям)
+class CommentCreateAPIView(generics.CreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # Автоматически назначаем автора комментария
+        serializer.save(author=self.request.user)
+
+# Редактирование и удаление комментария (доступно автору или администратору)
+class CommentUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAuthorOrAdmin]

@@ -10,6 +10,17 @@ from .models import Vacancy, Skill
 from .services import get_area_id
 from .management.commands.fill_database import Command as FillDatabaseCommand
 
+from rest_framework import generics
+from .models import Vacancy, Skill
+from .serializers import VacancySerializer, SkillSerializer
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import VacancySearchSerializer
+from .serializers import HomePageSerializer
+from .serializers import ContactPageSerializer
+
 # Главная страница
 class IndexView(TemplateView):
     template_name = 'index.html'
@@ -111,3 +122,90 @@ class StatisticsView(TemplateView):
         skills_with_count = Skill.objects.annotate(vacancy_count=Count('vacancies')).order_by('-vacancy_count')
         context['skills_with_count'] = skills_with_count
         return context
+
+
+
+class VacancyListAPIView(generics.ListAPIView):
+    queryset = Vacancy.objects.all().order_by('-created_at')
+    serializer_class = VacancySerializer
+
+class VacancyDetailAPIView(generics.RetrieveAPIView):
+    queryset = Vacancy.objects.all()
+    serializer_class = VacancySerializer
+
+class SkillListAPIView(generics.ListAPIView):
+    queryset = Skill.objects.annotate(vacancy_count=Count('vacancies')).order_by('-vacancy_count')
+    serializer_class = SkillSerializer
+
+
+class VacancySearchAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        # Валидация входных данных
+        serializer = VacancySearchSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Извлекаем параметры поиска
+        profession = serializer.validated_data['profession']
+        experience = serializer.validated_data.get('experience', 'noExperience')
+        work_format = serializer.validated_data.get('work_format', None)
+        employment_type = serializer.validated_data.get('employment_type', None)
+        location = serializer.validated_data.get('location', 1)
+
+        # Запускаем парсер
+        fill_database_command = FillDatabaseCommand()
+        try:
+            fill_database_command.handle(
+                profession=profession,
+                experience=experience,
+                work_format=work_format,
+                employment_type=employment_type,
+                location=location
+            )
+            return Response({"message": "Поиск вакансий успешно запущен"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class HomePageAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        data = {
+            "title": "Добро пожаловать на Parser HH",
+            "description": "Найди свою работу мечты с Parser HH, быстро и удобно!",
+            "features": [
+                {"title": "Быстрый результат", "description": "Получение списка вакансий одним нажатием кнопки."},
+                {"title": "Список навыков", "description": "Узнай, какие навыки самые востребованные."},
+                {"title": "Удобный поиск", "description": "Просто выбери необходимые параметры поиска."},
+                {"title": "Блог", "description": "Полезные статьи и истории пользователей."},
+            ]
+        }
+        serializer = HomePageSerializer(data)
+        return Response(serializer.data)
+
+
+class ContactPageAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        data = {
+            "title": "Всегда рада обратной связи",
+            "description": "Если у вас есть вопросы, предложения по улучшению и развитию проекта, свяжитесь со мной.",
+            "contacts": [
+                {
+                    "type": "Telegram",
+                    "value": "@Svetlana_F80",
+                    "link": "https://t.me/Svetlana_F80"
+                },
+                {
+                    "type": "Сообщество",
+                    "value": "Истории пользователей",
+                    "link": "{% url 'inspiration' %}"
+                },
+                {
+                    "type": "FAQ",
+                    "value": "Часто задаваемые вопросы",
+                    "link": "{% url 'faq' %}"
+                }
+            ]
+        }
+        serializer = ContactPageSerializer(data)
+        return Response(serializer.data)

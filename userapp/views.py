@@ -4,12 +4,17 @@ from .forms import RegisterForm, LoginForm
 from django.contrib.auth.models import User
 from .models import UserProfile
 from django.contrib.auth.decorators import login_required
-from .forms import ProfileForm
-from .forms import AdminProfileForm
+from .forms import ProfileForm, AdminProfileForm
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib import messages
-
 from .models import Notification
+
+from rest_framework import generics, permissions
+from .serializers import UserProfileSerializer, NotificationSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 
 def register(request):
     if request.method == 'POST':
@@ -35,14 +40,33 @@ def user_login(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('index')
+
+                # Генерация токена
+                refresh = RefreshToken.for_user(user)
+                access_token = str(refresh.access_token)
+                refresh_token = str(refresh)
+
+                # Сохранение токенов в сессии
+                request.session['access_token'] = access_token
+                request.session['refresh_token'] = refresh_token
+
+                return redirect('profile')  # Перенаправляем на страницу профиля
+            else:
+                messages.error(request, 'Неверное имя пользователя или пароль.')
     else:
         form = LoginForm()
     return render(request, 'userapp/login.html', {'form': form})
 
 def user_logout(request):
+    # Очищаем сессию
+    if 'access_token' in request.session:
+        del request.session['access_token']
+    if 'refresh_token' in request.session:
+        del request.session['refresh_token']
+
+    # Выход пользователя
     logout(request)
-    return redirect('index')
+    return redirect('index')  # Перенаправляем на главную страницу
 
 @login_required
 def profile(request):
@@ -50,6 +74,9 @@ def profile(request):
 
     # Вычисляем количество непрочитанных уведомлений
     unread_notifications_count = Notification.objects.filter(user=request.user, is_read=False).count()
+
+    # Получаем токен из сессии (если он есть)
+    user_token = request.session.get('access_token')
 
     if request.method == 'POST':
         form = ProfileForm(request.POST, request.FILES, instance=user_profile)  # Обрабатываем форму
@@ -59,11 +86,12 @@ def profile(request):
     else:
         form = ProfileForm(instance=user_profile)  # Создаём форму с текущими данными
 
-    # Передаём user_profile и unread_notifications_count в контекст шаблона
+    # Передаём user_profile, unread_notifications_count и user_token в контекст шаблона
     return render(request, 'userapp/profile.html', {
         'form': form,
         'user_profile': user_profile,
         'unread_notifications_count': unread_notifications_count,
+        'user_token': user_token,  # Передаём токен в шаблон
     })
 
 # Проверка, является ли пользователь администратором
@@ -115,3 +143,58 @@ def notifications(request):
     user_notifications.filter(is_read=False).update(is_read=True)
 
     return render(request, 'userapp/notifications.html', {'notifications': user_notifications})
+
+class UserProfileAPIView(generics.RetrieveUpdateAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user.userprofile
+
+class NotificationListAPIView(generics.ListAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.request.user.notifications.all().order_by('-created_at')
+
+class TokenObtainPairViewWithUserData(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            user = self.user
+            response.data['user'] = {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+            }
+            # Убедитесь, что refresh_token возвращается
+            response.data['refresh'] = str(response.data['refresh'])
+        return response
+
+class TokenRefreshViewWithUserData(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            user = self.request.user
+            response.data['user'] = {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+            }
+        return response
+
+class TokenRefreshAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        refresh_token = request.data.get('refresh')
+        if not refresh_token:
+            return Response({'error': 'Refresh token is required'}, status=400)
+
+        try:
+            refresh = RefreshToken(refresh_token)
+            access_token = str(refresh.access_token)
+            return Response({'access': access_token})
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
